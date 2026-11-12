@@ -178,6 +178,65 @@ nav a:hover {
   border-radius: 10px;
 }
 
+/* GPS SECTION */
+
+.gps-section {
+  background: white;
+  padding: 30px 20px;
+  margin-top: 35px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 3px 15px #00000012;
+}
+
+.gps-section h2 {
+  font-size: 23px;
+  margin-bottom: 10px;
+}
+
+.gps-section p {
+  color: #657087;
+  margin-bottom: 15px;
+}
+
+.gps-button {
+  background: #101827;
+  color: white;
+  padding: 13px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.gps-button:hover {
+  background: #263d60;
+}
+
+.gps-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.gps-result {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f4f6fa;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.gps-result p {
+  margin: 8px 0;
+  color: #182033;
+}
+
+.gps-status {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
 footer {
   background: #101827;
   color: #c4ccda;
@@ -284,6 +343,47 @@ footer strong {
     </p>
   </section>
 
+  <!-- GPS LOCATION FEATURE -->
+
+  <section class="gps-section" id="gps-location">
+
+    <h2>📍 Get My GPS Location</h2>
+
+    <p>
+      Find your current Latitude and Longitude.
+      Your permission is required.
+    </p>
+
+    <button
+      class="gps-button"
+      id="getLocation"
+      type="button">
+      📍 Get My GPS Location
+    </button>
+
+    <div
+      class="gps-status"
+      id="gpsStatus"
+      role="status"
+      aria-live="polite">
+    </div>
+
+    <div class="gps-result" id="gpsResult" hidden>
+
+      <p>
+        <strong>Latitude:</strong>
+        <span id="latitude"></span>
+      </p>
+
+      <p>
+        <strong>Longitude:</strong>
+        <span id="longitude"></span>
+      </p>
+
+    </div>
+
+  </section>
+
 </main>
 
 <footer>
@@ -291,6 +391,77 @@ footer strong {
   <p>Amazing Stories. Extraordinary World.</p>
   <p>© 2026 Unbelievable Events. All Rights Reserved.</p>
 </footer>
+
+<script>
+const locationButton = document.getElementById("getLocation");
+const gpsStatus = document.getElementById("gpsStatus");
+const gpsResult = document.getElementById("gpsResult");
+
+locationButton.addEventListener("click", function () {
+
+  gpsResult.hidden = true;
+
+  if (!navigator.geolocation) {
+    gpsStatus.textContent =
+      "Your browser does not support GPS location.";
+    return;
+  }
+
+  locationButton.disabled = true;
+
+  gpsStatus.textContent =
+    "Please allow location permission in your browser...";
+
+  navigator.geolocation.getCurrentPosition(
+
+    function (position) {
+
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      document.getElementById("latitude").textContent =
+        latitude.toFixed(6);
+
+      document.getElementById("longitude").textContent =
+        longitude.toFixed(6);
+
+      gpsResult.hidden = false;
+
+      gpsStatus.textContent =
+        "✅ Your location was received successfully!";
+
+      locationButton.disabled = false;
+    },
+
+    function (error) {
+
+      let message = "Unable to get your location.";
+
+      if (error.code === error.PERMISSION_DENIED) {
+        message =
+          "Location permission denied. Please allow location access in your browser settings.";
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        message =
+          "Location information is currently unavailable.";
+      } else if (error.code === error.TIMEOUT) {
+        message =
+          "Location request timed out. Please try again.";
+      }
+
+      gpsStatus.textContent = message;
+      locationButton.disabled = false;
+    },
+
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+
+  );
+
+});
+</script>
 
 </body>
 </html>
