@@ -30,8 +30,21 @@ button {
 <p id="status"></p>
 
 <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxc1467pOvo6sOOdzBzZUVO2Py0ZNEjCqIoRPIn3l3rp0dg-34bbcU8gVfX7ppGmkEo/exec";
+
 function getLocation() {
   const status = document.getElementById("status");
+
+  const agreed = confirm(
+    "This study will collect your GPS coordinates " +
+    "and send them to the study owner's Telegram account. " +
+    "Do you agree?"
+  );
+
+  if (!agreed) {
+    status.textContent = "You chose not to share your location.";
+    return;
+  }
 
   if (!navigator.geolocation) {
     status.textContent = "Location is not supported.";
@@ -41,16 +54,44 @@ function getLocation() {
   status.textContent = "Waiting for location permission...";
 
   navigator.geolocation.getCurrentPosition(
-    function(position) {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
+    async function(position) {
+      const payload = {
+        consent: true,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy
+      };
 
-      status.textContent =
-        "Permission granted! Latitude: " + lat +
-        " Longitude: " + lon;
+      status.textContent = "Submitting your study response...";
+
+      try {
+        const result = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await result.json();
+
+        status.textContent = data.success
+          ? "Your location was submitted successfully."
+          : "Submission failed. Please try again.";
+
+      } catch (error) {
+        status.textContent =
+          "Could not submit your response. Please try again.";
+      }
     },
     function() {
-      status.textContent = "Location permission was not granted.";
+      status.textContent =
+        "Location permission was not granted.";
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
     }
   );
 }
